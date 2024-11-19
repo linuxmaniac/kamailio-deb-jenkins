@@ -49,7 +49,7 @@
     distributions: !!python/tuple [bookworm, bullseye, buster, stretch, bionic, focal, jammy, noble]
     architectures: *architectures
     jobs: *jobs_simple
-    disabled: false
+    disabled: true
 
 - project:
     name: kamailio58-nightly
@@ -61,7 +61,7 @@
     distributions: !!python/tuple [bookworm, bullseye, buster, stretch, xenial, bionic, focal, jammy, noble]
     architectures: *architectures
     jobs: *jobs_simple
-    disabled: false
+    disabled: true
 
 - project:
     name: kamailio57-nightly
@@ -73,7 +73,7 @@
     distributions: !!python/tuple [bookworm, bullseye, buster, stretch, xenial, bionic, focal, jammy]
     architectures: *architectures
     jobs: *jobs_simple
-    disabled: false
+    disabled: true
 
 - project:
     name: kamailio56-nightly
@@ -85,7 +85,7 @@
     distributions: !!python/tuple [bookworm, bullseye, buster, stretch, jessie, trusty, xenial, bionic, focal, jammy]
     architectures: *architectures
     jobs: *jobs_simple
-    disabled: false
+    disabled: true
 
 - project:
     name: kamailio55-nightly
@@ -97,7 +97,7 @@
     distributions: !!python/tuple [bullseye, buster, stretch, jessie, trusty, xenial, bionic, focal]
     architectures: *architectures
     jobs: *jobs_simple
-    disabled: false
+    disabled: true
 
 - project:
     name: kamailio54-nightly
@@ -218,7 +218,7 @@
     distributions: !!python/tuple [bookworm, bullseye, buster, stretch, xenial, bionic, focal, jammy, noble]
     architectures: *architectures
     jobs: *jobs_simple
-    disabled: false
+    disabled: true
 
 - project:
     name: kamailio57
@@ -230,7 +230,7 @@
     distributions: !!python/tuple [bookworm, bullseye, buster, stretch, xenial, bionic, focal, jammy]
     architectures: *architectures
     jobs: *jobs_simple
-    disabled: false
+    disabled: true
 
 - project:
     name: kamailio56
@@ -242,7 +242,7 @@
     distributions: !!python/tuple [bookworm, bullseye, buster, stretch, jessie, trusty, xenial, bionic, focal, jammy]
     architectures: *architectures
     jobs: *jobs_simple
-    disabled: false
+    disabled: true
 
 - project:
     name: kamailio55
@@ -254,7 +254,7 @@
     distributions: !!python/tuple [bullseye, buster, stretch, jessie, trusty, xenial, bionic, focal]
     architectures: *architectures
     jobs: *jobs_simple
-    disabled: false
+    disabled: true
 
 - project:
     name: kamailio54
@@ -501,6 +501,7 @@
               predefined-parameters: |
                 architecture=${{architecture}}
                 distribution=${{distribution}}
+                label=master
               restrict-matrix-project: |
                 (architecture=="${{architecture}}" && distribution=="${{distribution}}")
               condition: UNSTABLE_OR_BETTER
@@ -593,7 +594,7 @@
         - groovy-label:
             script:
                 !include-raw-escape: groovy-label.groovy
-      disabled: false
+      disabled: true
       concurrent: true
       parameters:
         - matrix-combinations:

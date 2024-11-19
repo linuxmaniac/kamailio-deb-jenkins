@@ -1,4 +1,4 @@
-ENABLED=kamailio.yaml kamcli.yaml rtpengine.yaml
+ENABLED=kamailio-test.yaml kamailio.yaml kamcli.yaml rtpengine.yaml
 
 all: $(ENABLED)
 

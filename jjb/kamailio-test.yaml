@@ -1,0 +1,265 @@
+# This jenkins-job-build configuration sets up Jenkins jobs
+# for building Debian packages of kamailio
+# NOTE: requires jenkins-job-builder with patch
+# https://github.com/linuxmaniac/jenkins-job-builder/commit/3ca77a761fde77c383625d13d531455bdebf3fb8
+# (at least until it's included in upstream)
+
+## global defaults
+- defaults:
+    name: global
+    logrotate_keep: &logrotate_keep
+     5
+    architectures: !!python/tuple &architectures
+     - amd64
+     - arm64
+    repos: &repos
+      'https://github.com/kamailio/kamailio.git'
+    reftag: &reftag
+      '+refs/tags/*:refs/remotes/origin/tags/*'
+    refbranch: &refbranch
+      '+refs/heads/*:refs/remotes/origin/*'
+    branch: &branch
+      'master'
+    browser: githubweb
+    browser-url: &browserurl
+      'https://github.com/kamailio/kamailio.git'
+    jobs: &jobs_simple
+      - '{name}-source'
+      - '{name}-binaries'
+      - '{name}-repos'
+      - '{name}-piuparts'
+    slack: &slack_notifications
+      notify-failure: true
+    slack_build: &slack_notifications_build
+      notify-failure: true
+      commit-info-choice: AUTHORS_AND_TITLES
+    slack_build: &slack_notifications_piuparts
+      notify-failure: true
+      notify-unstable: true
+
+## list of projects with their configurations
+# build based on branches
+- project:
+    name: test-kamailiodev-nightly
+    logrotate_keep: *logrotate_keep
+    repos: *repos
+    refspec: *refbranch
+    branch: *branch
+    browser-url: *browserurl
+    distributions: !!python/tuple [bookworm, bullseye, buster, stretch, bionic, focal, jammy, noble]
+    architectures: *architectures
+    jobs: *jobs_simple
+    disabled: false
+
+## the job template
+- job-template:
+      name: '{name}-source'
+      project-type: matrix
+      description: |
+        Build Debian source package of {name}.
+        <!-- Do NOT edit this job through the web, it is generated via jenkins-job-builder! -->
+      properties:
+        - build-discarder:
+            num-to-keep: '{logrotate_keep}'
+      scm:
+        - git:
+            url: '{repos}'
+            name: origin
+            basedir: source
+            refspec: '{refspec}'
+            branches:
+              - '{branch}'
+            wipe-workspace: false
+            browser: '{browser}'
+            browser-url: '{browser-url}'
+      execution-strategy:
+        sequential: true
+      axes:
+        - axis:
+            type: user-defined
+            name: distribution
+            values: '{obj:distributions}'
+        - axis:
+            type: slave
+            name: label
+            values:
+              - master
+      disabled: '{obj:disabled}'
+      parameters:
+        - matrix-combinations:
+            name: matrixhasyouneo
+            description: "Choose combination(s) to trigger/build..."
+      triggers:
+        - pollscm:
+            cron: '@midnight'
+      builders:
+        - shell: 'rm -f ./* || true'
+        - shell: 'echo ${{distribution}} fake source'
+        - trigger-builds:
+          - project: '{name}-binaries'
+            block: false
+            predefined-parameters: |
+              architecture=arm64
+              distribution=${{distribution}}
+            restrict-matrix-project: |
+              (architecture=="arm64" && distribution=="${{distribution}}")
+          - project: '{name}-binaries'
+            block: false
+            predefined-parameters: |
+              architecture=amd64
+              distribution=${{distribution}}
+            restrict-matrix-project: |
+              (architecture=="amd64" && distribution=="${{distribution}}")
+      wrappers:
+        - timestamps
+        - timeout:
+            timeout: 90
+            fail: true
+
+- job-template:
+      name: '{name}-binaries'
+      project-type: matrix
+      description: |
+        Build Debian/Ubuntu binary packages of {name}.
+        <!-- Do NOT edit this job through the web, it is generated via jenkins-job-builder! -->
+      node: master
+      properties:
+        - build-discarder:
+            num-to-keep: '{logrotate_keep}'
+        - groovy-label:
+            script:
+                !include-raw-escape: groovy-label.groovy
+      execution-strategy:
+        sequential: false
+      concurrent: true
+      disabled: '{obj:disabled}'
+      parameters:
+        - matrix-combinations:
+            name: matrixhasyouneo
+            description: "Choose combination(s) to trigger/build..."
+      axes:
+        - axis:
+            type: user-defined
+            name: architecture
+            values: '{obj:architectures}'
+        - axis:
+            type: user-defined
+            name: distribution
+            values: '{obj:distributions}'
+      builders:
+        - shell: |
+           echo "* Removing files workspace before copying artifacts from another project. *"
+           rm -f ./* || true
+           echo "** architecture=${{architecture}} distribution=${{distribution}} **"
+        - shell: |
+           [ "${{distribution}}" = "bookworm" ] && exit 1 || exit 0
+        - trigger-builds:
+          - project: '{name}-repos'
+            block: false
+            predefined-parameters: |
+              architecture=${{architecture}}
+              distribution=${{distribution}}
+              label=master
+            restrict-matrix-project: |
+              (architecture=="${{architecture}}" && distribution=="${{distribution}}")
+          - project: '{name}-piuparts'
+            block: false
+            predefined-parameters: |
+              architecture=${{architecture}}
+              distribution=${{distribution}}
+            restrict-matrix-project: |
+              (architecture=="${{architecture}}" && distribution=="${{distribution}}")
+      publishers:
+        - workspace-cleanup:
+            dirmatch: false
+      wrappers:
+        - timestamps
+        - timeout:
+            timeout: 240
+            fail: true
+
+- job-template:
+      name: '{name}-repos'
+      project-type: matrix
+      description: |
+        Repository handling for Debian packages of {name}.
+        <!-- Do NOT edit this job through the web, it is generated via jenkins-job-builder! -->
+      properties:
+        - build-discarder:
+            num-to-keep: '{logrotate_keep}'
+      execution-strategy:
+        sequential: true
+      disabled: '{obj:disabled}'
+      parameters:
+        - matrix-combinations:
+            name: matrixhasyouneo
+            description: "Choose combination(s) to trigger/build..."
+      axes:
+        - axis:
+            type: user-defined
+            name: architecture
+            values: '{obj:architectures}'
+        - axis:
+            type: user-defined
+            name: distribution
+            values: '{obj:distributions}'
+        - axis:
+            type: slave
+            name: label
+            values:
+              - master
+      builders:
+        - shell: |
+           echo "* Removing files workspace before copying artifacts from another project. *"
+           rm -f ./* || true
+      publishers:
+        - workspace-cleanup:
+            dirmatch: false
+      wrappers:
+        - timestamps
+        - timeout:
+            timeout: 90
+            fail: true
+
+- job-template:
+      name: '{name}-piuparts'
+      project-type: matrix
+      description: |
+        Installation and upgrade tests for {name} Debian packages.
+        <!-- Do NOT edit this job through the web, it is generated via jenkins-job-builder! -->
+      node: master
+      properties:
+        - build-discarder:
+            num-to-keep: '{logrotate_keep}'
+        - groovy-label:
+            script:
+                !include-raw-escape: groovy-label.groovy
+      disabled: false
+      concurrent: true
+      parameters:
+        - matrix-combinations:
+            name: matrixhasyouneo
+            description: "Choose combination(s) to trigger/build..."
+      execution-strategy:
+        sequential: false
+      axes:
+        - axis:
+            type: user-defined
+            name: architecture
+            values: '{obj:architectures}'
+        - axis:
+            type: user-defined
+            name: distribution
+            values: '{obj:distributions}'
+      builders:
+        - shell: |
+           echo "* Removing files workspace before copying artifacts from another project. *"
+           rm -f ./* || true
+      publishers:
+        - workspace-cleanup:
+            dirmatch: false
+      wrappers:
+        - timestamps
+        - timeout:
+            timeout: 240
+            fail: true

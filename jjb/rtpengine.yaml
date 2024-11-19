@@ -41,7 +41,7 @@
     architectures: *architectures
     jobs: *jobs_simple
     recipients: *recipients
-    disabled: false
+    disabled: true
 
 - project:
     name: rtpengine-mr12.5-nightly
@@ -54,7 +54,7 @@
     architectures: *architectures
     jobs: *jobs_simple
     recipients: *recipients
-    disabled: false
+    disabled: true
 
 - project:
     name: rtpengine-mr11.5-nightly
@@ -67,7 +67,7 @@
     architectures: *architectures
     jobs: *jobs_simple
     recipients: *recipients
-    disabled: false
+    disabled: true
 
 - project:
     name: rtpengine-mr10.5-nightly
@@ -80,7 +80,7 @@
     architectures: *architectures
     jobs: *jobs_simple
     recipients: *recipients
-    disabled: false
+    disabled: true
 
 - project:
     name: rtpengine-mr9.5-nightly
@@ -93,7 +93,7 @@
     architectures: *architectures
     jobs: *jobs_simple
     recipients: *recipients
-    disabled: false
+    disabled: true
 
 - project:
     name: rtpengine-mr8.5-nightly
@@ -120,7 +120,7 @@
     architectures: *architectures
     jobs: *jobs_simple
     recipients: *recipients
-    disabled: false
+    disabled: true
 
 - project:
     name: rtpengine-mr11.5
@@ -133,7 +133,7 @@
     architectures: *architectures
     jobs: *jobs_simple
     recipients: *recipients
-    disabled: false
+    disabled: true
 
 - project:
     name: rtpengine-mr10.5
@@ -146,7 +146,7 @@
     architectures: *architectures
     jobs: *jobs_simple
     recipients: *recipients
-    disabled: false
+    disabled: true
 
 - project:
     name: rtpengine-mr9.5
@@ -159,7 +159,7 @@
     architectures: *architectures
     jobs: *jobs_simple
     recipients: *recipients
-    disabled: false
+    disabled: true
 
 - project:
     name: rtpengine-mr8.5
@@ -403,7 +403,7 @@
         - groovy-label:
             script:
                 !include-raw-escape: groovy-label.groovy
-      disabled: false
+      disabled: true
       parameters:
         - matrix-combinations:
             name: matrixhasyouneo
