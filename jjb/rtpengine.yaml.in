@@ -100,6 +100,18 @@
 
 # build based on tags
 - project:
+    name: rtpengine-mr13.5
+    logrotate_keep: *logrotate_keep
+    repos: *repos
+    refspec: *reftag
+    branch: ':refs/tags/mr13\\.5\\.1.\\d+'
+    browser_url: *browserurl
+    distributions: !!python/tuple [trixie, bookworm, bullseye, focal, jammy, noble]
+    architectures: *architectures
+    jobs: *jobs_simple
+    disabled: false
+
+- project:
     name: rtpengine-mr12.5
     logrotate_keep: *logrotate_keep
     repos: *repos
